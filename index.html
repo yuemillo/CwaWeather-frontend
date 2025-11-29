@@ -4,192 +4,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鋼鐵慶記天氣局 Steel Kēng-Kì Weather Bureau</title>
+    <title>台中天氣系統</title>
 
-    <!-- 替換為蒸汽龐克風格 icon -->
-    <link rel="icon" type="image/png" href="./icon-steampunk.png">
-    <link rel="apple-touch-icon" href="./icon-steampunk.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="./icon-steampunk.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Oxanium:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- 更沉重、工業感字體（Google Fonts） -->
-    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 
     <style>
-        :root {
-            --steel-dark: #2a2a2a;
-            --steel-gray: #4a4a4a;
-            --rust-brown: #7a4e2d;
-            --rust-light: #c08a55;
-            --fog-green: #8aa78b;
-            --radioactive: #baff61;
-            --copper: #b87333;
-            --card-metal: #1f1f1f;
-        }
-
+        /* === 共用基礎設定 === */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.5s ease, color 0.3s ease, border-color 0.5s ease;
         }
 
         body {
-            font-family: 'Oxanium', sans-serif;
-            background-color: var(--steel-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 80px; /* 留給懸浮按鈕空間 */
+        }
 
-            /* 廢土 × 蒸汽 × 金屬鏽蝕背景 */
-            background-image:
+        /* === 風格一：蒸汽龐克 (Steampunk) === */
+        body.theme-steampunk {
+            --bg-color: #2a2a2a;
+            --text-main: #baff61; /* 輻射綠 */
+            --text-sub: #c08a55;
+            --border-color: #b87333; /* 銅色 */
+            --card-bg: rgba(10, 10, 10, 0.85);
+            --pill-bg: #7a4e2d;
+            --pill-text: #fff;
+            --font-main: 'Oxanium', sans-serif;
+            
+            background-color: var(--bg-color);
+            background-image: 
                 url("https://images.unsplash.com/photo-1581092330386-3ac5fb41f1ae?auto=format&fit=crop&w=800&q=60"),
                 linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(60, 40, 20, 0.7));
             background-blend-mode: overlay;
             background-size: cover;
             background-attachment: fixed;
-
-            color: var(--radioactive);
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding-bottom: 20px;
         }
 
-        /* 頂部狀態列（改成金屬片） */
+        /* === 風格二：復古農民曆 (Retro) === */
+        body.theme-retro {
+            --bg-color: #F4F0E6;
+            --text-main: #2B2B2B; /* 墨黑 */
+            --text-sub: #C42B2B; /* 印泥紅 */
+            --border-color: #8B1E1E;
+            --card-bg: #fff;
+            --pill-bg: #C42B2B;
+            --pill-text: #fff;
+            --font-main: 'Noto Serif TC', serif;
+
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4d0c2 1px, transparent 1px);
+            background-size: 10px 10px;
+            border: 8px solid var(--border-color); /* 農民曆大紅框 */
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-main);
+        }
+
+        /* 頂部狀態列 */
         .status-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(8px);
-            border-bottom: 2px solid var(--copper);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .location-pill {
-            background: var(--rust-brown);
-            color: #fff;
-            padding: 6px 18px;
-            border-radius: 18px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            padding: 5px 15px;
+            border-radius: 20px;
             font-weight: 900;
             font-size: 1.1rem;
-            border: 2px solid var(--copper);
-            box-shadow: 0 0 12px rgba(255, 180, 80, 0.4);
+            border: 2px solid var(--border-color);
         }
 
-        .update-pill {
-            font-size: 0.8rem;
-            color: var(--radioactive);
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--rust-light);
-        }
-
+        /* === 卡片樣式 (會隨主題變形) === */
         .container {
             padding: 20px;
-            max-width: 650px;
+            max-width: 600px;
             margin: 0 auto;
         }
 
-        /* === 主卡片：改成鋼板 + 銅管 === */
         .hero-card {
-            background: rgba(10, 10, 10, 0.85);
-            border-radius: 25px;
-            padding: 30px 25px;
+            background: var(--card-bg);
+            padding: 30px 20px;
             text-align: center;
-            border: 3px solid var(--copper);
-            box-shadow: 0 0 25px rgba(255, 140, 60, 0.15);
             margin-bottom: 25px;
             position: relative;
+            /* 邊框樣式由 JS 或 CSS 變數控制細節 */
+            border: 3px solid var(--border-color);
+        }
+        
+        /* 龐克版特定樣式 */
+        .theme-steampunk .hero-card {
+            border-radius: 25px;
+            box-shadow: 0 0 25px rgba(255, 140, 60, 0.15);
+        }
+        
+        /* 農民曆版特定樣式 */
+        .theme-retro .hero-card {
+            border-radius: 0;
+            border: 3px double var(--border-color);
+            outline: 2px solid var(--border-color);
+            outline-offset: -8px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
         }
 
         .hero-period {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--rust-light);
-            color: #1b1b1b;
+            display: inline-block;
+            background: var(--text-sub);
+            color: #fff;
             padding: 5px 20px;
-            border-radius: 18px;
+            border-radius: 20px;
             font-weight: bold;
-            border: 2px solid #2a0200;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-temp-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
+            margin-bottom: 15px;
         }
 
         .hero-icon {
             font-size: 4.5rem;
-            animation: pulse 2.8s infinite;
+            margin: 10px 0;
+            animation: bounce 3s infinite;
+        }
+        
+        .theme-retro .hero-icon {
+            filter: grayscale(100%) brightness(80%) sepia(100%) hue-rotate(-50deg) saturate(600%); /* 仿印章紅 */
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50%      { transform: scale(1.07); }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         .hero-temp {
             font-size: 4rem;
             font-weight: 900;
-            color: var(--radioactive);
+            line-height: 1;
+            color: var(--text-main);
         }
 
         .hero-desc {
             font-size: 1.5rem;
-            color: var(--rust-light);
-            margin-bottom: 20px;
+            color: var(--text-sub);
+            margin: 10px 0 20px;
             font-weight: bold;
         }
 
-        /* 建議區：變成金屬小板 */
+        /* 建議區塊 grid */
         .advice-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px dashed var(--rust-light);
+            border-top: 1px dashed var(--text-sub);
         }
 
         .advice-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: rgba(50, 30, 20, 0.4);
-            padding: 12px;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
             border-radius: 15px;
-            border: 1px solid var(--copper);
         }
-
-        .advice-icon {
-            font-size: 2rem;
-            margin-bottom: 5px;
+        
+        .theme-retro .advice-item {
+            border-radius: 0; /* 農民曆不需要圓角 */
+            flex-direction: row; /* 農民曆改橫排 */
+            gap: 10px;
         }
 
         .advice-text {
             font-size: 1.2rem;
             font-weight: 900;
-            color: var(--radioactive);
-            margin: 5px 0;
+            color: var(--text-main);
         }
 
-        /* 預報標題 */
-        .section-title {
-            font-size: 1.2rem;
-            color: var(--rust-light);
-            margin-bottom: 15px;
-            margin-left: 10px;
-            font-weight: 900;
-            text-shadow: 0 0 5px rgba(255, 200, 150, 0.4);
-        }
-
-        /* 小卡片區 */
+        /* 橫向卷軸 */
         .scroll-container {
             display: flex;
             overflow-x: auto;
@@ -197,206 +207,296 @@
             padding-bottom: 10px;
             scrollbar-width: none;
         }
-
-        .scroll-container::-webkit-scrollbar {
-            display: none;
-        }
+        .scroll-container::-webkit-scrollbar { display: none; }
 
         .mini-card {
-            min-width: 140px;
-            background: rgba(20, 20, 20, 0.75);
-            border-radius: 18px;
-            padding: 18px 15px;
+            min-width: 130px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 15px;
             text-align: center;
-            border: 2px solid var(--copper);
             flex-shrink: 0;
         }
+        .theme-retro .mini-card { border-radius: 0; }
 
-        .mini-time {
-            background: var(--rust-brown);
-            color: #fff;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .mini-icon {
-            font-size: 2.2rem;
-            margin: 5px 0;
-        }
-
-        .mini-temp {
+        .section-title {
+            color: var(--text-sub);
+            margin-bottom: 15px;
+            font-weight: 900;
             font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--radioactive);
         }
 
-        /* Loading 畫面改成輻射霧 */
+        /* === 切換按鈕 (Floating Action Button) === */
+        .theme-switch-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .theme-switch-btn:active { transform: scale(0.9); }
+
+        /* Loading */
         .loading-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #1a1a1a;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 999;
+            z-index: 2000;
+            transition: opacity 0.5s;
         }
     </style>
 </head>
 
-<body>
+<body class="theme-steampunk">
 
     <div id="loading" class="loading-screen">
-        <div style="font-size: 4rem; animation: pulse 2s infinite;">☢️</div>
-        <p style="color: var(--radioactive); font-weight: bold; margin-top: 20px;">
-            齒輪啟動中…蒸汽壓力穩定
-        </p>
+        <div id="loadingIcon" style="font-size: 4rem; animation: bounce 1s infinite;">☢️</div>
+        <p id="loadingText" style="font-weight: bold; margin-top: 20px; font-size: 1.2rem;">系統校準中...</p>
     </div>
 
+    <button class="theme-switch-btn" onclick="toggleTheme()" title="切換時空">
+        🔄
+    </button>
+
     <div class="status-bar">
-        <div class="location-pill">📍 慶記之都 · 臺中</div>
-        <div id="updateTime" class="update-pill">資料啟動中...</div>
+        <div class="location-pill" id="locPill">📍 慶記之都</div>
+        <div id="updateTime" style="font-size:0.8rem; font-weight:bold;">更新中...</div>
     </div>
 
     <div class="container" id="mainContent" style="display:none;">
         <div id="heroCard"></div>
 
-        <h3 class="section-title">稍後預報（Wasteland Forecast）</h3>
+        <h3 class="section-title" id="forecastTitle">稍後預報</h3>
         <div class="scroll-container" id="futureForecasts"></div>
     </div>
 
-    <!-- ✦ JS 全部保留，無功能修改 ✦ -->
     <script>
-        /* 你的原始 JS 內容原封不動 */
         const API_URL = "https://weather-newtxg.zeabur.app/api/weather/kaohsiung";
+        
+        // 全域變數儲存資料與狀態
+        let weatherData = null;
+        let currentTheme = 'steampunk'; // 'steampunk' or 'retro'
+
+        // === 文案與圖示設定檔 ===
+        const themeConfig = {
+            steampunk: {
+                title: "鋼鐵慶記氣象局",
+                loc: "📍 慶記之都",
+                forecastTitle: "Wasteland Forecast (稍後預報)",
+                loadingIcon: "☢️",
+                loadingText: "齒輪啟動中...蒸汽壓力穩定",
+                icons: { default: "⚙️", sun: "☀️", cloud: "🌫️", rain: "💧", thunder: "⚡" },
+                advice: {
+                    rainHigh: { icon: "☂️", text: "攜帶防護具" },
+                    rainLow: { icon: "🛠️", text: "無需防護" },
+                    tempHigh: { icon: "🥽", text: "輕裝上路" },
+                    tempLow: { icon: "🧤", text: "注意保暖" }
+                }
+            },
+            retro: {
+                title: "好運農民曆",
+                loc: "📍 臺中市",
+                forecastTitle: "◆ 未來時辰預測 ◆",
+                loadingIcon: "吉",
+                loadingText: "天機推演中...",
+                icons: { default: "🌤️", sun: "☀️", cloud: "☁️", rain: "🌧️", thunder: "⛈️" },
+                advice: {
+                    rainHigh: { icon: "☔", text: "記得帶傘" },
+                    rainLow: { icon: "🌤️", text: "安心出遊" },
+                    tempHigh: { icon: "🎽", text: "短袖出發" },
+                    tempLow: { icon: "🧥", text: "多添衣物" }
+                }
+            }
+        };
+
+        // === 切換主題函式 ===
+        function toggleTheme() {
+            const body = document.body;
+            
+            if (currentTheme === 'steampunk') {
+                currentTheme = 'retro';
+                body.classList.replace('theme-steampunk', 'theme-retro');
+            } else {
+                currentTheme = 'steampunk';
+                body.classList.replace('theme-retro', 'theme-steampunk');
+            }
+            
+            // 如果已經有資料，重新渲染畫面
+            if (weatherData) {
+                renderWeather(weatherData);
+            }
+        }
+
+        // === 核心邏輯 ===
 
         function getWeatherIcon(weather) {
-            if (!weather) return "🔧";
-            if (weather.includes("晴")) return "☀️";
-            if (weather.includes("多雲")) return "🌫️";
-            if (weather.includes("陰")) return "☁️";
-            if (weather.includes("雨")) return "💧";
-            if (weather.includes("雷")) return "⚡";
-            return "⚙️";
+            const cfg = themeConfig[currentTheme].icons;
+            if (!weather) return cfg.default;
+            if (weather.includes("晴")) return cfg.sun;
+            if (weather.includes("多雲") || weather.includes("陰")) return cfg.cloud;
+            if (weather.includes("雨")) return cfg.rain;
+            if (weather.includes("雷")) return cfg.thunder;
+            return cfg.default;
         }
 
-        function getAdvice(rainProb, maxTemp) {
-            let rainIcon = "🛠️";
-            let rainText = "無需防護";
-            if (parseInt(rainProb) > 30) {
-                rainIcon = "☂️";
-                rainText = "攜帶防雨護具";
-            }
+        function getAdviceContent(rainProb, maxTemp) {
+            const cfg = themeConfig[currentTheme].advice;
+            
+            let rainResult = (parseInt(rainProb) > 30) ? cfg.rainHigh : cfg.rainLow;
+            
+            let tempResult = cfg.tempLow; // default low
+            if (parseInt(maxTemp) >= 28) tempResult = cfg.tempHigh;
+            else if (parseInt(maxTemp) > 20) tempResult = { icon: "👕", text: "氣溫舒適" }; // 中間值
 
-            let clothIcon = "🧥";
-            let clothText = "標準護甲";
-            if (parseInt(maxTemp) >= 28) {
-                clothIcon = "🥽";
-                clothText = "輕裝上路";
-            } else if (parseInt(maxTemp) <= 20) {
-                clothIcon = "🧤";
-                clothText = "注意保暖";
-            }
-
-            return { rainIcon, rainText, clothIcon, clothText };
-        }
-
-        function getTimePeriod(startTime) {
-            const hour = new Date(startTime).getHours();
-            if (hour >= 5 && hour < 11) return "早晨";
-            if (hour >= 11 && hour < 14) return "中午";
-            if (hour >= 14 && hour < 18) return "下午";
-            if (hour >= 18 && hour < 23) return "晚上";
-            return "深夜";
+            return { rainResult, tempResult };
         }
 
         function renderWeather(data) {
+            const cfg = themeConfig[currentTheme];
             const forecasts = data.forecasts;
             const current = forecasts[0];
             const others = forecasts.slice(1);
 
-            const advice = getAdvice(current.rain, current.maxTemp);
-            const period = getTimePeriod(current.startTime);
+            // 更新靜態文字
+            document.title = cfg.title;
+            document.getElementById('locPill').innerText = cfg.loc;
+            document.getElementById('forecastTitle').innerText = cfg.forecastTitle;
+
+            // 計算數據
+            const advice = getAdviceContent(current.rain, current.maxTemp);
             const avgTemp = Math.round((parseInt(current.maxTemp) + parseInt(current.minTemp)) / 2);
+            
+            // 時段顯示邏輯 (農民曆用文言，龐克用白話)
+            let period = "";
+            const h = new Date(current.startTime).getHours();
+            if (currentTheme === 'retro') {
+                if(h>=5 && h<11) period="平旦至日隅";
+                else if(h>=11 && h<13) period="日正當中";
+                else if(h>=13 && h<18) period="日昳至日入";
+                else period="夜半時分";
+            } else {
+                if(h>=5 && h<11) period="早晨";
+                else if(h>=11 && h<14) period="中午";
+                else if(h>=14 && h<18) period="下午";
+                else period="晚上";
+            }
+
+            // 生成 Hero Card HTML
+            // 根據不同主題微調結構
+            let adviceHTML = "";
+            if (currentTheme === 'retro') {
+                // 農民曆結構
+                adviceHTML = `
+                    <div class="advice-item">
+                        <div style="background:var(--text-sub); color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:0.9rem;">宜</div>
+                        <div>
+                            <div class="advice-text">${advice.rainResult.text}</div>
+                            <div style="font-size:0.8rem; opacity:0.7">降雨率 ${current.rain}</div>
+                        </div>
+                    </div>
+                    <div class="advice-item">
+                        <div style="background:var(--text-sub); color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:0.9rem;">宜</div>
+                        <div>
+                            <div class="advice-text">${advice.tempResult.text}</div>
+                            <div style="font-size:0.8rem; opacity:0.7">氣溫 ${avgTemp}°</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 蒸汽龐克結構
+                adviceHTML = `
+                    <div class="advice-item">
+                        <div style="font-size:2rem;">${advice.rainResult.icon}</div>
+                        <div class="advice-text">${advice.rainResult.text}</div>
+                        <div style="font-size:0.7rem; color:var(--text-sub)">降雨率 ${current.rain}</div>
+                    </div>
+                    <div class="advice-item">
+                        <div style="font-size:2rem;">${advice.tempResult.icon}</div>
+                        <div class="advice-text">${advice.tempResult.text}</div>
+                        <div style="font-size:0.7rem; color:var(--text-sub)">預估 ${avgTemp}°</div>
+                    </div>
+                `;
+            }
 
             document.getElementById('heroCard').innerHTML = `
                 <div class="hero-card">
                     <div class="hero-period">${period}</div>
-
                     <div class="hero-temp-container">
                         <div class="hero-icon">${getWeatherIcon(current.weather)}</div>
                         <div class="hero-temp">${avgTemp}°</div>
                     </div>
-
                     <div class="hero-desc">${current.weather}</div>
-
-                    <div class="advice-grid">
-                        <div class="advice-item">
-                            <div class="advice-icon">${advice.rainIcon}</div>
-                            <div class="advice-text">${advice.rainText}</div>
-                            <div style="font-size:0.7rem; color:#aaa">降雨率 ${current.rain}</div>
-                        </div>
-
-                        <div class="advice-item">
-                            <div class="advice-icon">${advice.clothIcon}</div>
-                            <div class="advice-text">${advice.clothText}</div>
-                            <div style="font-size:0.7rem; color:#aaa">最高溫 ${current.maxTemp}°</div>
-                        </div>
-                    </div>
+                    <div class="advice-grid">${adviceHTML}</div>
                 </div>
             `;
 
+            // 生成稍後預報
             const scrollContainer = document.getElementById('futureForecasts');
             scrollContainer.innerHTML = '';
-
-            const todayDate = new Date().getDate();
-
+            
             others.forEach(f => {
-                let p = getTimePeriod(f.startTime);
-                const fDate = new Date(f.startTime);
-
-                if (fDate.getDate() !== todayDate) p = "明天" + p;
-
+                const fH = new Date(f.startTime).getHours();
+                let timeStr = `${fH}:00`;
+                // 簡單處理時間標籤
+                
                 scrollContainer.innerHTML += `
                     <div class="mini-card">
-                        <div class="mini-time">${p}</div>
-                        <div class="mini-icon">${getWeatherIcon(f.weather)}</div>
-                        <div class="mini-temp">${f.minTemp}° - ${f.maxTemp}°</div>
-                        <div style="font-size:0.8rem; color:#888; margin-top:5px;">💧${f.rain}</div>
+                        <div style="background:var(--pill-bg); color:white; padding:2px 8px; border-radius:10px; display:inline-block; font-size:0.8rem; margin-bottom:5px;">${timeStr}</div>
+                        <div class="mini-icon" style="font-size:2rem; margin:5px 0;">${getWeatherIcon(f.weather)}</div>
+                        <div style="font-weight:bold; color:var(--text-main)">${f.minTemp}°-${f.maxTemp}°</div>
+                        <div style="font-size:0.8rem; color:var(--text-sub); margin-top:5px;">💧${f.rain}</div>
                     </div>
                 `;
             });
 
+            // 更新日期
             const now = new Date();
-            const month = now.getMonth() + 1;
-            const date = now.getDate();
-            const dayIndex = now.getDay();
-            const days = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
-
-            document.getElementById('updateTime').textContent = `${month}月${date}日 ${days[dayIndex]}`;
+            document.getElementById('updateTime').textContent = `${now.getMonth()+1}/${now.getDate()} 更新`;
         }
 
         async function fetchWeather() {
+            // 初始化 Loading 畫面文字
+            document.getElementById('loadingIcon').innerText = themeConfig[currentTheme].loadingIcon;
+            document.getElementById('loadingText').innerText = themeConfig[currentTheme].loadingText;
+
             try {
                 const delayPromise = new Promise(resolve => setTimeout(resolve, 1500));
                 const fetchPromise = fetch(API_URL).then(res => res.json());
-
                 const [_, json] = await Promise.all([delayPromise, fetchPromise]);
 
                 if (json.success) {
-                    renderWeather(json.data);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'block';
+                    weatherData = json.data; // 存入全域變數
+                    renderWeather(weatherData);
+                    
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                    }, 500);
                 } else {
                     throw new Error("API Error");
                 }
             } catch (e) {
-                alert("系統異常：蒸汽壓力失衡！");
+                console.error(e);
+                alert("通訊系統故障 / 天機無法洩漏");
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
